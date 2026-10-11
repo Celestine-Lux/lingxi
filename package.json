@@ -1,0 +1,23 @@
+{
+  "name": "lingxi-chat-lens",
+  "version": "1.1.0",
+  "private": true,
+  "description": "灵犀 · 聊天解读：解析 QQ 等聊天记录，用常见的文本大模型读懂对方情绪与潜台词，并复盘自己的回复。模型接口是独立可管理的配置，支持连接测试。",
+  "main": "server.js",
+  "bin": {
+    "lingxi": "server.js"
+  },
+  "scripts": {
+    "start": "node tools/launch.js",
+    "dev": "node tools/launch.js --no-open",
+    "test": "node tools/selftest.js",
+    "selftest": "node tools/launch.js --selftest",
+    "check-encoding": "node tools/check-encoding.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {},
+  "keywords": ["qq", "chat", "analysis", "llm", "relationship"],
+  "license": "MIT"
+}

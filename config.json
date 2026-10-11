@@ -1,0 +1,18 @@
+{
+  "activeId": "pmv2g1jjph9kk",
+  "profiles": [
+    {
+      "id": "pmv2g1jjph9kk",
+      "name": "新配置",
+      "provider": "openai_compatible",
+      "baseUrl": "https://api.choosec.cn/v1",
+      "apiKey": "sk-evcGQIWriUj3Ss2BQSURy2qzCaY4AN1QXc60TyJzhbzacUhF",
+      "model": "deepseek-v4.1-flash",
+      "temperature": 0.4,
+      "maxTokens": 8000,
+      "chunkSize": 400,
+      "maxChunks": 12,
+      "timeoutMs": 300000
+    }
+  ]
+}

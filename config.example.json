@@ -1,0 +1,32 @@
+{
+  "_说明": "把本文件复制成 config.json，工具启动时就有配置了。也可以完全不管它：直接在网页界面的「3 模型接口」里填好并点「保存修改」，工具会自己写 config.json。config.json 里含 Key，不要提交到公开仓库。",
+  "activeId": "p1",
+  "profiles": [
+    {
+      "id": "p1",
+      "name": "DeepSeek 官方",
+      "provider": "deepseek",
+      "baseUrl": "https://api.deepseek.com/v1",
+      "apiKey": "sk-你的key",
+      "model": "deepseek-chat",
+      "temperature": 0.4,
+      "maxTokens": 8000,
+      "chunkSize": 400,
+      "maxChunks": 12,
+      "timeoutMs": 300000
+    },
+    {
+      "id": "p2",
+      "name": "某个中转站（示例，可删）",
+      "provider": "openai_compatible",
+      "baseUrl": "https://your-gateway.example.com/v1",
+      "apiKey": "填中转站给你的key",
+      "model": "gpt-4o-mini",
+      "temperature": 0.4,
+      "maxTokens": 8000,
+      "chunkSize": 400,
+      "maxChunks": 12,
+      "timeoutMs": 300000
+    }
+  ]
+}

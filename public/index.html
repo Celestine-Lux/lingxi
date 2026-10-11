@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>灵犀 · 聊天解读</title>
+<link rel="stylesheet" href="./style.css" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>💬</text></svg>" />
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <span class="logo-mark">灵</span>
+    <span class="brand-text">
+      <span class="logo">灵犀</span>
+      <span class="sub">聊天解读 · 读懂对方，也看清自己</span>
+    </span>
+  </div>
+  <div class="top-actions">
+    <span class="pill" id="statusPill">正在连接服务…</span>
+    <button class="icon-btn" id="btnTheme" title="切换深色 / 浅色">◐</button>
+    <button class="btn ghost" id="btnHelp">使用说明</button>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="sidebar">
+    <section class="card">
+      <h2><span class="step">1</span>导入聊天记录</h2>
+      <div class="drop" id="dropZone">
+        <span class="drop-icon">⤓</span>
+        <strong>拖入 .txt / .log 文件</strong>
+        <span>或 <button class="link" id="btnPick">点这里选择文件</button></span>
+        <span class="hint">QQ 手机端「聊天记录 → 导出」，或电脑端全选聊天窗口复制，保持「昵称: 时间」格式</span>
+      </div>
+      <input type="file" id="fileInput" accept=".txt,.log,.md,.csv,text/plain" hidden />
+      <textarea id="logText" spellcheck="false" placeholder="在这里粘贴聊天记录…
+
+支持的格式（每行「昵称: 时间」+ 下一行内容）：
+昵称: 10-08 19:01:50
+消息内容"></textarea>
+      <div class="mini-row">
+        <span class="hint" id="detectHint">等待输入…</span>
+        <span class="hint" id="charCount">0 字</span>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2><span class="step">2</span>人物与诉求</h2>
+      <div class="field-grid">
+        <label>我是谁<input id="selfName" placeholder="你在这段聊天里的昵称" /></label>
+        <label>对方是谁<input id="otherName" placeholder="对方的昵称" /></label>
+      </div>
+      <p class="hint" id="speakerHint">填上昵称后，才能对比双方的回复节奏。</p>
+      <div class="field-grid">
+        <label>关系阶段
+          <select id="relationship">
+            <option>还在暧昧不确定</option>
+            <option>刚认识不久</option>
+            <option>已经在一起</option>
+            <option>异地 / 少见面的情侣</option>
+            <option>忽冷忽热 / 有点悬</option>
+            <option>吵过架 / 在冷战</option>
+            <option>其他</option>
+          </select>
+        </label>
+        <label>这次想解决什么
+          <select id="goal">
+            <option>读懂对方的态度，判断有没有戏</option>
+            <option>让对话更热络，不再尬聊</option>
+            <option>我刚说错话了，怎么补救</option>
+            <option>要不要主动找他 / 该不该表白</option>
+            <option>关系变冷了，怎么回暖</option>
+            <option>只想看清自己的沟通问题</option>
+          </select>
+        </label>
+      </div>
+      <label class="full">补充背景（可选，越具体越准）
+        <textarea id="knownFacts" class="small" spellcheck="false" placeholder="例如：认识 3 个月，同校，之前约过一次饭；上次因为她回消息很慢我闹了脾气。"></textarea>
+      </label>
+      <label class="inline"><input type="checkbox" id="localOnly" /> 只看本地统计，不调用模型</label>
+    </section>
+
+    <section class="card">
+      <h2><span class="step">3</span>模型接口</h2>
+
+      <div class="profile-bar">
+        <select id="profileSelect" title="选择要使用的接口配置"></select>
+        <button class="icon-btn small" id="btnProfiles" title="管理接口配置">☰</button>
+        <button class="icon-btn small" id="btnReloadProfiles" title="从 config.json 重新读取">⟳</button>
+      </div>
+
+      <label class="full">配置名称<input id="profileName" placeholder="例如：DeepSeek 官方 / 公司中转" /></label>
+
+      <div class="field-grid">
+        <label>服务商<select id="provider"></select></label>
+        <label>模型<input id="model" placeholder="模型名" list="modelList" /><datalist id="modelList"></datalist></label>
+      </div>
+      <label class="full">接口地址 Base URL<input id="baseUrl" placeholder="https://api.deepseek.com/v1" /></label>
+      <label class="full">API Key<input id="apiKey" type="password" placeholder="sk-..." autocomplete="off" /></label>
+
+      <div class="btn-row">
+        <button class="btn" id="btnTest">连接测试</button>
+        <button class="btn" id="btnSaveProfile">保存修改</button>
+        <button class="btn ghost" id="btnNewProfile">新建</button>
+        <button class="btn ghost danger-text" id="btnDeleteProfile">删除</button>
+      </div>
+      <div id="testResult"></div>
+      <p class="hint" id="configHint">配置保存在本机 config.json；Key 只留在你自己的电脑上，请求由本机直接发往你填的地址。</p>
+
+      <details class="advanced">
+        <summary>模型参数</summary>
+        <div class="field-grid">
+          <label>温度<input id="temperature" type="number" step="0.1" min="0" max="2" value="0.4" /></label>
+          <label>最大输出 tokens<input id="maxTokens" type="number" min="500" step="500" value="8000" /></label>
+          <label>每段消息条数<input id="chunkSize" type="number" min="80" step="20" value="400" /></label>
+          <label>最多分段数<input id="maxChunks" type="number" min="1" step="1" value="12" /></label>
+        </div>
+        <label class="inline"><input type="checkbox" id="stream" checked /> 流式输出（能实时看到模型在写）</label>
+      </details>
+    </section>
+
+    <section class="card sticky-actions">
+      <div class="btn-row">
+        <button class="btn primary" id="btnAnalyze">开始分析</button>
+        <button class="btn" id="btnPreview">仅解析预览</button>
+      </div>
+      <div class="progress" id="progress"><div class="bar" id="progressBar"></div></div>
+      <p class="hint" id="progressText">准备就绪。</p>
+      <div class="btn-row">
+        <button class="btn ghost" id="btnExportMd" disabled>导出 Markdown</button>
+        <button class="btn ghost" id="btnExportJson" disabled>导出 JSON</button>
+      </div>
+    </section>
+  </aside>
+
+  <main class="main">
+    <nav class="tabs" id="tabs">
+      <button class="tab active" data-tab="summary">总览</button>
+      <button class="tab" data-tab="messages">逐条解读</button>
+      <button class="tab" data-tab="review">我的复盘</button>
+      <button class="tab" data-tab="advice">下一步</button>
+      <button class="tab" data-tab="local">本地统计</button>
+      <button class="tab" data-tab="simulate">试聊模拟</button>
+      <button class="tab" data-tab="raw">原文/日志</button>
+    </nav>
+
+    <section class="panel" id="panel-summary">
+      <div class="empty" id="emptySummary">
+        <div class="empty-icon">💬</div>
+        <h3>把聊天记录贴到左边，点「开始分析」</h3>
+        <p>这个小工具会做两件事：先用量化的节奏数据看清你们互动的真实状态，再让大模型逐条读对方的语气和潜台词，顺便指出你哪句话没接好、可以换成什么。</p>
+        <div class="steps-row">
+          <div class="step-card"><b>1</b><span>粘贴或拖入聊天记录</span></div>
+          <div class="step-card"><b>2</b><span>配好模型接口并「连接测试」</span></div>
+          <div class="step-card"><b>3</b><span>开始分析，看四张报告</span></div>
+        </div>
+        <p class="hint">担心隐私？先点「仅解析预览」或勾「只看本地统计」，模型不会被调用，聊天内容不出本机。</p>
+      </div>
+      <div id="summaryBody"></div>
+    </section>
+
+    <section class="panel hidden" id="panel-messages">
+      <div class="filter-row" id="insightFilters"></div>
+      <div id="messagesBody" class="cards"></div>
+    </section>
+
+    <section class="panel hidden" id="panel-review">
+      <div id="reviewBody" class="cards"></div>
+    </section>
+
+    <section class="panel hidden" id="panel-advice">
+      <div id="adviceBody"></div>
+    </section>
+
+    <section class="panel hidden" id="panel-local">
+      <div id="localBody"></div>
+    </section>
+
+    <section class="panel hidden" id="panel-simulate">
+      <div class="card inner">
+        <h3>试聊模拟</h3>
+        <p class="hint">写下你准备发的话，让模型扮演对方，预测最可能的 3 种反应，并评估这条消息的风险。</p>
+        <textarea id="draftText" placeholder="例如：今天路过那家你提过的店，突然想起你说想吃他家的栗子蛋糕。"></textarea>
+        <div class="btn-row">
+          <button class="btn primary" id="btnSimulate">预演一下</button>
+          <span class="hint" id="simHint"></span>
+        </div>
+      </div>
+      <div id="simBody"></div>
+    </section>
+
+    <section class="panel hidden" id="panel-raw">
+      <div id="rawBody"></div>
+    </section>
+  </main>
+</div>
+
+<div class="modal hidden" id="configModal">
+  <div class="modal-box">
+    <button class="modal-close" id="configClose">×</button>
+    <h2>接口配置管理</h2>
+    <p class="hint">每条配置 = 一套「服务商 + 地址 + Key + 模型」。点一行即可载入左边的表单；改完点「保存修改」写入 config.json。</p>
+    <div id="profileList" class="profile-list"></div>
+    <div class="modal-foot">
+      <button class="btn" id="btnTestAll">逐个测试全部配置</button>
+      <button class="btn ghost" id="btnNewProfile2">新建配置</button>
+      <span class="hint" id="configModalHint"></span>
+    </div>
+  </div>
+</div>
+
+<div class="modal hidden" id="helpModal">
+  <div class="modal-box">
+    <button class="modal-close" id="helpClose">×</button>
+    <h2>怎么用，以及怎么拿到聊天记录</h2>
+    <h3>1. 拿到 QQ 聊天记录</h3>
+    <ul>
+      <li><b>手机 QQ</b>：进入聊天 → 右上角「≡」→ 聊天记录 → 导出/生成 txt → 发给「文件传输助手」，在电脑上下载。</li>
+      <li><b>电脑 QQ</b>：打开聊天窗口，往上滚动加载想看的那段，全选（Ctrl+A）→ 复制 → 粘贴到左边的输入框。</li>
+      <li><b>导不出来时</b>：手动按「昵称: 月-日 时:分:秒 + 换行 + 内容」的格式整理几条关键的，10 条以上就够分析了。</li>
+      <li>支持的格式：「昵称: 10-08 19:01:50」「2024-10-08 19:01:50 昵称」「[2024-10-08 19:01:50] 昵称」「昵称 2024/10/8 19:01」；只有「月-日」时会自动推断年份。</li>
+    </ul>
+    <h3>2. 配好模型接口</h3>
+    <ul>
+      <li>在左侧「3 模型接口」里填好一条配置，点 <b>连接测试</b> 确认能通（会显示耗时和模型返回的样例）。</li>
+      <li><b>DeepSeek</b>：地址 <code>https://api.deepseek.com/v1</code>，模型 <code>deepseek-chat</code>，便宜、中文语感好。</li>
+      <li><b>OpenAI 兼容中转站</b>：把中转站给的地址（一般以 <code>/v1</code> 结尾）和 Key 填进去，模型名照抄文档。</li>
+      <li><b>Claude</b>：服务商选 Anthropic，地址 <code>https://api.anthropic.com</code>，填 <code>sk-ant-</code> 开头的 Key。</li>
+      <li><b>本地模型</b>：装了 Ollama 就选 Ollama，先 <code>ollama pull qwen2.5:14b</code>；完全离线，隐私最好，但分析深度弱一些。</li>
+      <li>配置会存进本机 <code>config.json</code>，可以存多条随时切换；想彻底抹掉 Key，删掉那条配置或直接编辑该文件。</li>
+    </ul>
+    <h3>3. 读报告的建议</h3>
+    <ul>
+      <li>先看「本地统计」，那是硬数据：谁更主动、谁的回复更慢、谁在收尾，比任何猜测都可靠。</li>
+      <li>「逐条解读」是概率判断，把握度低于 60% 的当参考，别当结论。</li>
+      <li>「我的复盘」里每条都给了改写句，那才是这个小工具最能帮到你的地方——把话说清楚，比猜对方想什么更有用。</li>
+    </ul>
+    <h3>4. 常见问题</h3>
+    <ul>
+      <li><b>连接测试报 401</b>：Key 错了；<b>404</b>：地址或模型名不对；<b>429</b>：限流或额度用完。</li>
+      <li><b>解析出的说话人不对</b>：把昵称分别填进「我是谁 / 对方是谁」。</li>
+      <li><b>记录太长</b>：会自动分段（默认每 400 条一段）再汇总；也可以把「每段消息条数」调到 150-200。</li>
+      <li><b>要换端口</b>：<code>node tools/launch.js --port 6000</code>。</li>
+    </ul>
+  </div>
+</div>
+
+<script>
+// 兜底：如果 app.js 没能正常执行，至少给出人能看懂的原因，而不是白屏
+setTimeout(function () {
+  if (!window.__LINGXI_READY__) {
+    var d = document.createElement('div');
+    d.className = 'notice error';
+    d.style.margin = '16px';
+    d.textContent = '界面脚本没有正常加载。请确认是通过 start.bat（或 node server.js）打开的本页面，而不是直接双击 public/index.html 打开的文件。';
+    document.body.prepend(d);
+  }
+}, 2500);
+</script>
+<script src="./app.js"></script>
+</body>
+</html>
